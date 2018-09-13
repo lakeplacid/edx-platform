@@ -91,7 +91,8 @@ from student.text_me_the_app import TextMeTheAppFragmentView
 from util.bad_request_rate_limiter import BadRequestRateLimiter
 from util.db import outer_atomic
 from util.json_request import JsonResponse
-from util.password_policy_validators import SecurityPolicyError, validate_password
+#from util.password_policy_validators import SecurityPolicyError, validate_password
+from django.contrib.auth.password_validation import validate_password
 
 log = logging.getLogger("edx.student")
 
