@@ -163,11 +163,14 @@ class AlphabeticValidator(object):
         ) % {'min_alphabetic': self.min_alphabetic}
 
     def get_instruction_text(self):
-        return ungettext(
-            '%(num)d letter',
-            '%(num)d letters',
-            self.min_alphabetic
-        ) % {'num': self.min_alphabetic}
+        if self.min_alphabetic > 0:
+            return ungettext(
+                '%(num)d letter',
+                '%(num)d letters',
+                self.min_alphabetic
+            ) % {'num': self.min_alphabetic}
+        else:
+            return ''
 
 
 class NumericValidator(object):
@@ -206,11 +209,14 @@ class NumericValidator(object):
         ) % {'min_numeric': self.min_numeric}
 
     def get_instruction_text(self):
-        return ungettext(
-            '%(num)d number',
-            '%(num)d numbers',
-            self.min_numeric
-        ) % {'num': self.min_numeric}
+        if self.min_numeric > 0:
+            return ungettext(
+                '%(num)d number',
+                '%(num)d numbers',
+                self.min_numeric
+            ) % {'num': self.min_numeric}
+        else:
+            return ''
 
 
 class PasswordReuseValidator(object):
