@@ -1,8 +1,11 @@
+#coding:utf-8
 """
 Tests for student activation and login
 """
+import ddt
 import json
 import unittest
+import unicodedata
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -15,8 +18,9 @@ from mock import patch
 from six import text_type
 
 from openedx.core.djangoapps.external_auth.models import ExternalAuthMap
-from openedx.core.djangoapps.user_api.config.waffle import PREVENT_AUTH_USER_WRITES, waffle
+from openedx.core.djangoapps.user_api.config.waffle import PASSWORD_UNICODE_NORMALIZE,  PREVENT_AUTH_USER_WRITES, waffle
 from openedx.core.djangoapps.user_authn.cookies import jwt_cookies
+from openedx.core.djangoapps.waffle_utils.testutils import override_waffle_flag
 from openedx.core.djangoapps.user_authn.tests.utils import setup_login_oauth_client
 from openedx.core.djangoapps.user_authn.waffle import JWT_COOKIES_FLAG
 from openedx.core.djangoapps.password_policy.compliance import (
@@ -28,7 +32,7 @@ from student.tests.factories import RegistrationFactory, UserFactory, UserProfil
 from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory
 
-
+@ddt.ddt
 class LoginTest(CacheIsolationTestCase):
     """
     Test login_user() view
@@ -478,6 +482,27 @@ class LoginTest(CacheIsolationTestCase):
             response_content = json.loads(response.content)
             self.assertIn('Test warning', self.client.session['_messages'])
         self.assertTrue(response_content.get('success'))
+
+
+    @ddt.data(
+        ('test_password', 'test_password', True),
+        (unicodedata.normalize('NFKD', u'Ṗŕệṿïệẅ Ṯệẍt'),
+         unicodedata.normalize('NFKC',u'Ṗŕệṿïệẅ Ṯệẍt'), False),
+        (unicodedata.normalize('NFKC', u'Ṗŕệṿïệẅ Ṯệẍt'),
+         unicodedata.normalize('NFKD', u'Ṗŕệṿïệẅ Ṯệẍt'), True),
+        (unicodedata.normalize('NFKD', u'Ṗŕệṿïệẅ Ṯệẍt'),
+         unicodedata.normalize('NFKD', u'Ṗŕệṿïệẅ Ṯệẍt'), False),
+    )
+    @ddt.unpack
+    @override_waffle_flag(PASSWORD_UNICODE_NORMALIZE, active=True)
+    def test_password_unicode_normalization_login(self, password, password_entered, login_success):
+        """
+        Tests unicode normalization on user's passwords on login.
+        """
+        self.user.set_password(password)
+        self.user.save()
+        response, mock_audit_log = self._login_response(self.user.email, password_entered,)
+        self._assert_response(response, success=login_success)
 
     def _login_response(self, email, password, patched_audit_log=None, extra_post_params=None):
         """

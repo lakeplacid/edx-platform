@@ -13,6 +13,7 @@ from django.core.validators import validate_email, ValidationError
 from django.http import HttpResponseForbidden
 from openedx.core.djangoapps.theming.helpers import get_current_request
 from six import text_type
+from waffle import flag_is_active
 
 from student.models import User, UserProfile, Registration, email_exists_or_retired, username_exists_or_retired
 from student import forms as student_forms
@@ -339,6 +340,8 @@ def create_account(username, password, email):
 
     # Create the user account, setting them to "inactive" until they activate their account.
     user = User(username=username, email=email, is_active=False)
+    if PASSWORD_UNICODE_NORMALIZE.is_enabled():
+        password = unicodedata.normalize('NFKC', password)
     user.set_password(password)
 
     try:

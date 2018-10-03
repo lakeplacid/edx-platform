@@ -1,5 +1,6 @@
 """ Views related to auto auth. """
 import datetime
+import unicodedata
 import uuid
 
 from django.conf import settings
@@ -16,6 +17,7 @@ from django_comment_common.models import assign_role
 
 from opaque_keys.edx.locator import CourseLocator
 from openedx.core.djangoapps.user_api.accounts.utils import generate_password
+from openedx.core.djangoapps.theming.helpers import get_current_request
 from openedx.features.course_experience import course_home_url_name
 from student.forms import AccountCreationForm
 from student.helpers import (
@@ -106,7 +108,11 @@ def auto_auth(request):  # pylint: disable=too-many-statements
         # Attempt to retrieve the existing user.
         user = User.objects.get(username=username)
         user.email = email
-        user.set_password(password)
+        if flag_is_active(get_current_request(), 'password_unicode_normalize'):
+            normalized_password = unicodedata.normalize('NFKC', password)
+            user.set_password(normalized_password)
+        else:
+            user.set_password(password)
         user.is_active = is_active
         user.save()
         profile = UserProfile.objects.get(user=user)

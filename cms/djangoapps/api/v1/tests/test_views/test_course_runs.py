@@ -265,7 +265,7 @@ class CourseRunViewSetTests(ModuleStoreTestCase):
         self.assertEqual(course_run.id.run, data['run'])
         self.assertEqual(course_run.self_paced, expected_self_paced_value)
         self.assert_course_run_schedule(course_run, start, end)
-        self.assert_access_role(course_run, user, role)
+        self. assert_access_role(course_run, user, role)
         self.assert_course_access_role_count(course_run, 1)
 
     def test_create_with_invalid_course_team(self):

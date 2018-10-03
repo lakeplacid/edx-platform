@@ -6,7 +6,9 @@ import logging
 import mimetypes
 import urllib
 import urlparse
+import unicodedata
 from datetime import datetime
+from waffle import flag_is_active
 
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
@@ -36,7 +38,9 @@ from lms.djangoapps.verify_student.utils import is_verification_expiring_soon, v
 from openedx.core.djangoapps.certificates.api import certificates_viewable_for_course
 from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
 from openedx.core.djangoapps.theming import helpers as theming_helpers
+from openedx.core.djangoapps.user_api.config.waffle import PASSWORD_UNICODE_NORMALIZE
 from openedx.core.djangoapps.theming.helpers import get_themes
+from openedx.core.djangoapps.theming.helpers import get_current_request
 from student.models import (
     LinkedInAddToProfileConfiguration,
     PasswordHistory,
@@ -623,7 +627,10 @@ def do_create_account(form, custom_form=None):
         email=form.cleaned_data["email"],
         is_active=False
     )
-    user.set_password(form.cleaned_data["password"])
+    password = form.cleaned_data["password"]
+    if PASSWORD_UNICODE_NORMALIZE.is_enabled():
+        password = unicodedata.normalize('NFKC', password)
+    user.set_password(password)
     registration = Registration()
 
     # TODO: Rearrange so that if part of the process fails, the whole process fails.
