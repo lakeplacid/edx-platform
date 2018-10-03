@@ -202,9 +202,6 @@ FEATURES = {
     # Maximum number of rows to include in the csv file for downloading problem responses.
     'MAX_PROBLEM_RESPONSES_COUNT': 5000,
 
-    # whether to use password policy enforcement or not
-    'ENFORCE_PASSWORD_POLICY': True,
-
     'ENABLED_PAYMENT_REPORTS': [
         "refund_report",
         "itemized_purchase_report",

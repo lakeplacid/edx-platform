@@ -219,14 +219,14 @@ class AccountCreationForm(forms.Form):
             data=None,
             extra_fields=None,
             extended_profile_fields=None,
-            enforce_password_policy=False,
+            third_party_auth=False,
             tos_required=True
     ):
         super(AccountCreationForm, self).__init__(data)
 
         extra_fields = extra_fields or {}
         self.extended_profile_fields = extended_profile_fields or {}
-        self.enforce_password_policy = enforce_password_policy
+        self.third_party_auth = third_party_auth
         if tos_required:
             self.fields["terms_of_service"] = TrueField(
                 error_messages={"required": _("You must accept the terms of service.")}
@@ -274,7 +274,7 @@ class AccountCreationForm(forms.Form):
     def clean_password(self):
         """Enforce password policies (if applicable)"""
         password = self.cleaned_data["password"]
-        if self.enforce_password_policy:
+        if not self.third_party_auth:
             # Creating a temporary user object to test password against username
             # This user should NOT be saved
             username = self.cleaned_data.get('username')
