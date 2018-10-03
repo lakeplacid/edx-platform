@@ -836,7 +836,7 @@ def password_reset_confirm_wrapper(request, uidb36=None, token=None):
                 'validlink': True,
                 'form': None,
                 'title': _('Password reset unsuccessful'),
-                'err_msg': err.message,
+                'err_msg': ' '.join(err.messages),
             }
             context.update(platform_name)
             return TemplateResponse(
