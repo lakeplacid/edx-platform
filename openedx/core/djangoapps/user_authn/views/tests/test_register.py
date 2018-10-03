@@ -637,10 +637,14 @@ class TestCreateAccountValidation(TestCase):
         del params["email"]
         assert_email_error("A properly formatted e-mail is required")
 
-        # Empty, too short
-        for email in ["", "a"]:
-            params["email"] = email
-            assert_email_error("A properly formatted e-mail is required")
+        # Empty
+        params["email"] = ""
+        assert_email_error("A properly formatted e-mail is required")
+
+        #too short
+        params["email"] = "a"
+        assert_email_error("A properly formatted e-mail is required "
+                           "Ensure this value has at least 3 characters (it has 1).")
 
         # Too long
         params["email"] = '{email}@example.com'.format(
