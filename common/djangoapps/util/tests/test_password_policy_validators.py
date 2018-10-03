@@ -100,11 +100,9 @@ class PasswordPolicyValidatorsTestCase(unittest.TestCase):
         (u'password', u'username', 'test@example.com', None),
     )
     @unpack
-    @override_settings(
-        AUTH_PASSWORD_VALIDATORS=[create_validator_config(
-            'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'
-        )]
-    )
+    @override_settings(AUTH_PASSWORD_VALIDATORS=[
+        create_validator_config('django.contrib.auth.password_validation.UserAttributeSimilarityValidator')
+    ])
     def test_user_attribute_similarity_validation_errors(self, password, username, email, msg):
         """ Tests edX_validate_password error messages for the UserAttributeSimilarityValidator """
         user = User(username=username, email=email)
@@ -147,11 +145,9 @@ class PasswordPolicyValidatorsTestCase(unittest.TestCase):
         (u'good_password', None),
     )
     @unpack
-    @override_settings(
-        AUTH_PASSWORD_VALIDATORS=[create_validator_config(
-            'django.contrib.auth.password_validation.CommonPasswordValidator'
-        )]
-    )
+    @override_settings(AUTH_PASSWORD_VALIDATORS=[
+        create_validator_config('django.contrib.auth.password_validation.CommonPasswordValidator')
+    ])
     def test_common_password_validation_errors(self, password, msg):
         """ Tests edX_validate_password error messages for the CommonPasswordValidator """
         self.validation_errors_checker(password, msg)

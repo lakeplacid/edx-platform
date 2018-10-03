@@ -200,6 +200,9 @@ FEATURES = {
     # an Open edX admin has added them to the course creator group.
     'ENABLE_CREATOR_GROUP': True,
 
+    # whether to use password policy enforcement or not
+    'ENFORCE_PASSWORD_POLICY': False,
+
     # Turn off account locking if failed login attempts exceeds a limit
     'ENABLE_MAX_FAILED_LOGIN_ATTEMPTS': False,
 

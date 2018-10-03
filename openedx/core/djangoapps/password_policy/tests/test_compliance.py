@@ -16,7 +16,7 @@ from openedx.core.djangoapps.password_policy.compliance import (NonCompliantPass
                                                                 should_enforce_compliance_on_login)
 from student.tests.factories import (CourseAccessRoleFactory,
                                      UserFactory)
-from util.password_policy_validators import ValidationError, edX_validate_password
+from util.password_policy_validators import ValidationError
 
 
 date1 = parse_date('2018-01-01 00:00:00+00:00')
@@ -93,14 +93,16 @@ class TestCompliance(TestCase):
         """
 
         # Test that a user that passes edX_validate_password returns True
-        with patch('openedx.core.djangoapps.password_policy.compliance.edX_validate_password') as mock_edX_validate_password:
+        with patch('openedx.core.djangoapps.password_policy.compliance.edX_validate_password') as \
+                mock_edX_validate_password:
             user = UserFactory()
             # Mock edX_validate_password to return True without checking the password
             mock_edX_validate_password.return_value = True
             self.assertTrue(_check_user_compliance(user, None))  # Don't need a password here
 
         # Test that a user that does not pass edX_validate_password returns False
-        with patch('openedx.core.djangoapps.password_policy.compliance.edX_validate_password') as mock_edX_validate_password:
+        with patch('openedx.core.djangoapps.password_policy.compliance.edX_validate_password') as \
+                mock_edX_validate_password:
             user = UserFactory()
             # Mock edX_validate_password to throw a ValidationError without checking the password
             mock_edX_validate_password.side_effect = ValidationError('Some validation error')
