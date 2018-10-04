@@ -195,7 +195,7 @@
 
                             // Hide each input tip
                             $(this).children().each(function() {
-                                if (inputTipSelectors.indexOf($(this).attr('class')) >= 0) {
+                                if (inputTipSelectors.indexOf($(this).attr('class')) >= 1) {
                                     $(this).addClass('hidden');
                                 }
                             });

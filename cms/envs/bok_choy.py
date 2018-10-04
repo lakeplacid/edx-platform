@@ -52,6 +52,25 @@ XBLOCK_SETTINGS.update({'VideoDescriptor': {'licensing_enabled': True}})
 # Capture the console log via template includes, until webdriver supports log capture again
 CAPTURE_CONSOLE_LOG = True
 
+# Need this specified with default settings so bok_choy tests don't need to rely on configuration
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "util.password_policy_validators.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 2
+        }
+    },
+    {
+        "NAME": "util.password_policy_validators.MaximumLengthValidator",
+        "OPTIONS": {
+            "max_length": 75
+        }
+    },
+]
+
 ############################ STATIC FILES #############################
 
 # Enable debug so that static assets are served by Django
