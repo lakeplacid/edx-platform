@@ -6,6 +6,8 @@ from lms.djangoapps.grades.api.v1 import views
 from lms.djangoapps.grades.api.views import CourseGradingPolicy
 
 
+app_name = 'lms.djangoapps.grades'
+
 urlpatterns = [
     url(
         r'^courses/$',

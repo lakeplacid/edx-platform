@@ -1,9 +1,10 @@
 """
 Tests for v1 views
 """
+from collections import OrderedDict
 from datetime import datetime
-import ddt
 
+import ddt
 from django.urls import reverse
 from mock import MagicMock, patch
 from opaque_keys import InvalidKeyError
@@ -12,7 +13,9 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from lms.djangoapps.courseware.tests.factories import GlobalStaffFactory, StaffFactory
+from lms.djangoapps.grades.config.waffle import waffle_flags, WRITABLE_GRADEBOOK
 from openedx.core.djangoapps.content.course_overviews.tests.factories import CourseOverviewFactory
+from openedx.core.djangoapps.waffle_utils.testutils import override_waffle_flag
 from student.tests.factories import CourseEnrollmentFactory, UserFactory
 from xmodule.modulestore.tests.factories import CourseFactory, ItemFactory
 from xmodule.modulestore.tests.django_utils import SharedModuleStoreTestCase, TEST_DATA_SPLIT_MODULESTORE
@@ -383,3 +386,77 @@ class CourseGradesViewTest(GradeViewTestMixin, APITestCase):
         ]
 
         self.assertEqual(resp.data, expected_data)
+
+
+class GradebookViewTest(GradeViewTestMixin, APITestCase):
+    """
+    Test for the gradebook view.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super(GradebookViewTest, cls).setUpClass()
+        cls.namespaced_url = 'grades_api:v1:course_gradebook'
+        cls.waffle_flag = waffle_flags()[WRITABLE_GRADEBOOK]
+
+    def get_url(self, course_key=None):
+        """
+        Helper function to create the url
+        """
+        return reverse(
+            self.namespaced_url,
+            kwargs={
+                'course_id': course_key or self.course_key,
+            }
+        )
+
+    def login_staff(self):
+        """
+        Helper function to login the global staff user, who has permissions to read from the
+        Gradebook API.
+        """
+        self.client.logout()
+        self.client.login(username=self.global_staff.username, password=self.password)
+
+    def test_feature_not_enabled(self):
+        self.client.logout()
+        self.client.login(username=self.global_staff.username, password=self.password)
+        with override_waffle_flag(self.waffle_flag, active=False):
+            resp = self.client.get(
+                self.get_url(course_key=self.empty_course.id)
+            )
+            self.assertEqual(status.HTTP_403_FORBIDDEN, resp.status_code)
+
+    def test_anonymous(self):
+        self.client.logout()
+        with override_waffle_flag(self.waffle_flag, active=True):
+            resp = self.client.get(self.get_url())
+            self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_student(self):
+        with override_waffle_flag(self.waffle_flag, active=True):
+            resp = self.client.get(self.get_url())
+            self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_course_does_not_exist(self):
+        with override_waffle_flag(self.waffle_flag, active=True):
+            self.login_staff()
+            resp = self.client.get(
+                self.get_url(course_key='course-v1:MITx+8.MechCX+2014_T1')
+            )
+            self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_course_no_enrollments(self):
+        with override_waffle_flag(self.waffle_flag, active=True):
+            self.login_staff()
+            resp = self.client.get(
+                self.get_url(course_key=self.empty_course.id)
+            )
+            expected_data = {
+                'count': 0,
+                'next': None,
+                'previous': None,
+                'results': [],
+            }
+            self.assertEqual(status.HTTP_200_OK, resp.status_code)
+            self.assertEqual(expected_data, dict(resp.data))
