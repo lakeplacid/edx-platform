@@ -150,23 +150,25 @@ class ChooseModeView(View):
             current_enrollment = list(CourseEnrollment.enrollments_for_user(request.user).filter(course_id=course_key))
             if current_enrollment:
                 meter = ProgramProgressMeter(request.site, request.user, enrollments=current_enrollment)
-                # program for the course on this page
-                program_for_course = meter.invert_programs().get(course_id)[0]
-                program_uuid = program_for_course.get('uuid')
-                if program_for_course:
-                    # program data with bundle info
-                    program_data = ProgramDataExtender(program_for_course, request.user, mobile_only=False).extend()
-                    skus = program_data.get('skus')
-                    ecommerce_service = EcommerceService()
-                    program_bundle_url = ecommerce_service.get_checkout_page_url(*skus, program_uuid=program_uuid)
-                    bundle_data = {
-                        'program_marketing_site_url': program_data.get('marketing_url'),
-                        'program_bundle_url': program_bundle_url,
-                        'discount_data': program_data.get('discount_data'),
-                        'program_type': program_data.get('type'),
-                        'program_title': program_data.get('title'),
-                        'program_price': program_data.get('full_program_price'),
-                    }
+                meter_inverted_programs = meter.invert_programs()
+                if len(meter_inverted_programs) > 0:
+                    # program for the course on this page
+                    program_for_course = meter_inverted_programs.get(course_id)[0]
+                    program_uuid = program_for_course.get('uuid')
+                    if program_for_course:
+                        # program data with bundle info
+                        program_data = ProgramDataExtender(program_for_course, request.user, mobile_only=False).extend()
+                        skus = program_data.get('skus')
+                        ecommerce_service = EcommerceService()
+                        program_bundle_url = ecommerce_service.get_checkout_page_url(*skus, program_uuid=program_uuid)
+                        bundle_data = {
+                            'program_marketing_site_url': program_data.get('marketing_url'),
+                            'program_bundle_url': program_bundle_url,
+                            'discount_data': program_data.get('discount_data'),
+                            'program_type': program_data.get('type'),
+                            'program_title': program_data.get('title'),
+                            'program_price': program_data.get('full_program_price'),
+                        }
 
         context = {
             "bundle_data": bundle_data,
